@@ -10,6 +10,7 @@ import threading
 class ParseInput(object):
     def Gmail(self):
         global gui
+        global server
         global GMAIL_USERNAME
         global GMAIL_LOGIN_var
         global GMAIL_USERNAME_entry
@@ -42,6 +43,7 @@ class ParseInput(object):
         global REDDIT_LOGIN_var
         global REDDIT_USERNAME_entry
         global REDDIT_PASSWORD_entry
+
         REDDIT_USERNAME = REDDIT_USERNAME_entry.get()
         REDDIT_PASSWORD = REDDIT_PASSWORD_entry.get()
         if len(REDDIT_PASSWORD) == 0:
@@ -71,9 +73,42 @@ class ParseInput(object):
             REDDIT_LOGIN_var.set('Not Logged In!')
             return 0
 
+    def Save(self):
+        global sleep_time_entry
+        global search_term_entry
+        global subreddit_string_entry
+        global TARGET_EMAIL_entry
+        global GMAIL_USERNAME_entry
+        global REDDIT_USERNAME_entry
+        global sleep_time
+        global search_term
+        global subreddit_string
+        global TARGET_EMAIL
+
+        sleep_time = int(sleep_time_entry.get())
+        search_term = search_term_entry.get()
+        subreddit_string = subreddit_string_entry.get()
+        TARGET_EMAIL = TARGET_EMAIL_entry.get()
+        TEMP_GMAIL_USERNAME = GMAIL_USERNAME_entry.get()
+        TEMP_REDDIT_USERNAME = REDDIT_USERNAME_entry.get()
+
+        cfgfile = open('config.cfg','w')
+        Config = ConfigParser.ConfigParser()
+        Config.add_section('Main')
+        Config.set('Main', 'sleep_time', sleep_time)
+        Config.set('Main', 'search_term', search_term)
+        Config.set('Main', 'subreddit_string', subreddit_string)
+        Config.set('Main', 'TARGET_EMAIL', TARGET_EMAIL)
+        Config.set('Main', 'GMAIL_USERNAME', TEMP_GMAIL_USERNAME)
+        Config.set('Main', 'REDDIT_USERNAME', TEMP_REDDIT_USERNAME)
+        Config.write(cfgfile)
+        cfgfile.close()
+        print 'Saving worked!'
+
     def Start(self):
         global gui
         global reddit
+        global server
         global sleep_time_entry
         global search_term_entry
         global subreddit_string_entry
@@ -86,9 +121,18 @@ class ParseInput(object):
         global REDDIT_USERNAME
         global GMAIL_LOGIN_var
         global REDDIT_LOGIN_var
+        global START_button
+        global START_button_var
+        global one_loop
+
+        if not START_button_var.get():
+            return 0
         if GMAIL_LOGIN_var.get() != 'Logged Into Gmail!' or REDDIT_LOGIN_var.get() != 'Logged Into Reddit!':
+            START_button.deselect()
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui)
             return 0
+
+        console_output = tk.StringVar()
         sleep_time = int(sleep_time_entry.get())
         search_term = search_term_entry.get()
         subreddit_string = subreddit_string_entry.get()
@@ -115,100 +159,81 @@ class ParseInput(object):
                 subreddits.append(reddit.get_subreddit(subreddit))
             else:
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
+        def looping():
+            while START_button_var.get():
+                # get current time
+                current_time = time.time()
+                posts_this_round = []
+                current_string = ''
+                # get 10 new posts and place into all_posts
+                for subreddit in subreddits:
+                    posts_to_grab = 10
+                    prev_posts = 6000
+                    new_posts = 6000
+                    while prev_posts == new_posts:
+                        prev_posts = posts_to_grab
+                        new_posts = 0
+                        posts_this_subreddit = []
+                        for submission in subreddit.get_new(limit = posts_to_grab):
+                            if submission not in all_posts and submission not in posts_this_round and (current_time - submission.created_utc) < stale_post_time:
+                                posts_this_subreddit.append(submission)
+                                new_posts += 1
+                        posts_to_grab *= 2
+                    for post in posts_this_subreddit:
+                        if post not in posts_this_round:
+                            posts_this_round.append(post)
 
-        while True:
-            # get current time
-            current_time = time.time()
-            posts_this_round = []
+                print 'Found', len(posts_this_round), 'new posts that have been added to the array'
+                current_string += 'Found' + str(len(posts_this_round)) + 'new posts that have been added to the array'
+                # put new posts with search term into messages_to_notify_user_about
+                not_notified_posts = 0
+                for new_post in posts_this_round:
+                    for temp_search_term in search_terms:
+                        if new_post.title.lower().find(temp_search_term) != -1 and new_post not in messages_to_notify_user_about:
+                            messages_to_notify_user_about.append(new_post)
+                            not_notified_posts += 1
+                        elif new_post.is_self and new_post.selftext.lower().find(temp_search_term) != -1 and new_post not in messages_to_notify_user_about:
+                            messages_to_notify_user_about.append(new_post)
+                            not_notified_posts += 1
 
-            # get 10 new posts and place into all_posts
-            for subreddit in subreddits:
-                posts_to_grab = 10
-                prev_posts = 6000
-                new_posts = 6000
-                while prev_posts == new_posts:
-                    prev_posts = posts_to_grab
-                    new_posts = 0
-                    posts_this_subreddit = []
-                    for submission in subreddit.get_new(limit = posts_to_grab):
-                        if submission not in all_posts and submission not in posts_this_round and (current_time - submission.created_utc) < stale_post_time:
-                            posts_this_subreddit.append(submission)
-                            new_posts += 1
-                    posts_to_grab *= 2
-                for post in posts_this_subreddit:
-                    if post not in posts_this_round:
-                        posts_this_round.append(post)
+                print 'Found', not_notified_posts, 'new posts that need to be sent to the user'
+                current_string += 'Found' + str(not_notified_posts) + 'new posts that have been added to the array'
 
-            print 'Found', len(posts_this_round), 'new posts that have been added to the array'
+                # put all posts that need to be sent to the user in messages_already_sent
+                for to_send in messages_to_notify_user_about:
+                    if to_send not in messages_already_sent:
+                        message_to_send = 'New post with something from ' + search_term + ' in it from the /r/' + str(to_send.subreddit) + '\n\n' + to_send.permalink + '\n\n'
+                        if to_send.is_self:
+                            message_to_send += 'Self text here:\n\n'
+                            message_to_send += to_send.selftext
+                        reddit.send_message(REDDIT_USERNAME, 'New message found!', message_to_send)
+                        server.sendmail(GMAIL_USERNAME, TARGET_EMAIL, message_to_send)
+                        messages_already_sent.append(to_send)
 
-            # put new posts with search term into messages_to_notify_user_about
-            not_notified_posts = 0
-            for new_post in posts_this_round:
-                for temp_search_term in search_terms:
-                    if new_post.title.lower().find(temp_search_term) != -1 and new_post not in messages_to_notify_user_about:
-                        messages_to_notify_user_about.append(new_post)
-                        not_notified_posts += 1
-                    elif new_post.is_self and new_post.selftext.lower().find(temp_search_term) != -1 and new_post not in messages_to_notify_user_about:
-                        messages_to_notify_user_about.append(new_post)
-                        not_notified_posts += 1
+                # push new posts into queue
+                for post in posts_this_round:
+                    all_posts.append(post)
 
-            print 'Found', not_notified_posts, 'new posts that need to be sent to the user'
+                # clear posts older than 'stale_post_time' seconds old
+                print 'Clean-up time'
+                current_string += 'Clean-Up time'
+                cleanup(all_posts, current_time, stale_post_time)
+                cleanup(messages_to_notify_user_about, current_time, stale_post_time)
+                cleanup(messages_already_sent, current_time, stale_post_time)
 
-            # put all posts that need to be sent to the user in messages_already_sent
-            for to_send in messages_to_notify_user_about:
-                if to_send not in messages_already_sent:
-                    message_to_send = 'New post with something from ' + search_term + ' in it from the /r/' + to_send.subreddit + '\n\n' + to_send.permalink + '\n\n'
-                    if to_send.is_self:
-                        message_to_send += 'Self text here:\n\n'
-                        message_to_send += to_send.selftext
-                    reddit.send_message(REDDIT_USERNAME, 'New message found!', message_to_send)
-                    server.sendmail(GMAIL_USERNAME, TARGET_EMAIL, message_to_send)
-                    messages_already_sent.append(to_send)
-
-            # push new posts into queue
-            for post in posts_this_round:
-                all_posts.append(post)
-
-            # clear posts older than 'stale_post_time' seconds old
-            print 'Clean-up time'
-            cleanup(all_posts, current_time, stale_post_time)
-            cleanup(messages_to_notify_user_about, current_time, stale_post_time)
-            cleanup(messages_already_sent, current_time, stale_post_time)
-
-            #let script sleep for 'sleep_time' seconds
-            print 'Waiting', sleep_time, 'seconds'
-            time.sleep(sleep_time)
-
-    def Save(self):
-        global sleep_time_entry
-        global search_term_entry
-        global subreddit_string_entry
-        global TARGET_EMAIL_entry
-        global GMAIL_USERNAME_entry
-        global REDDIT_USERNAME_entry
-        global sleep_time
-        global search_term
-        global subreddit_string
-        global TARGET_EMAIL
-
-        sleep_time = int(sleep_time_entry.get())
-        search_term = search_term_entry.get()
-        subreddit_string = subreddit_string_entry.get()
-        TARGET_EMAIL = TARGET_EMAIL_entry.get()
-        TEMP_GMAIL_USERNAME = GMAIL_USERNAME_entry.get()
-        TEMP_REDDIT_USERNAME = REDDIT_USERNAME_entry.get()
-        cfgfile = open('config.cfg','w')
-        Config = ConfigParser.ConfigParser()
-        Config.add_section('Main')
-        Config.set('Main', 'sleep_time', sleep_time)
-        Config.set('Main', 'search_term', search_term)
-        Config.set('Main', 'subreddit_string', subreddit_string)
-        Config.set('Main', 'TARGET_EMAIL', TARGET_EMAIL)
-        Config.set('Main', 'GMAIL_USERNAME', TEMP_GMAIL_USERNAME)
-        Config.set('Main', 'REDDIT_USERNAME', TEMP_REDDIT_USERNAME)
-        Config.write(cfgfile)
-        cfgfile.close()
-        print 'Saving worked!'
+                #let script sleep for 'sleep_time' seconds
+                print 'Waiting', sleep_time, 'seconds'
+                current_string += 'Waiting' + str(sleep_time) + 'seconds'
+                console_output.set(current_string)
+                time.sleep(sleep_time)
+            print 'Exiting thread'
+            one_loop = False
+        if not one_loop:
+            one_loop = True
+            thread = threading.Thread(target = looping)
+            thread.start() # start parallel computation
+        else:
+            print 'One thread is already active'
         
 def cleanup(list, current_time, stale_post_time):
     for post in list:
@@ -262,20 +287,6 @@ def get_config_data():
     except Exception as detail:
         print 'Missing REDDIT_USERNAME'
 
-def main_executable():
-    global sleep_time_entry
-    global search_term_entry
-    global subreddit_string_entry
-    global TARGET_EMAIL_entry
-    global sleep_time
-    global search_term
-    global subreddit_string
-    global TARGET_EMAIL
-    global GMAIL_USERNAME
-    global REDDIT_USERNAME
-
- 
-
 def create_gui():
     global gui
     global sleep_time_entry
@@ -288,8 +299,12 @@ def create_gui():
     global REDDIT_PASSWORD_entry
     global GMAIL_LOGIN_var
     global REDDIT_LOGIN_var
+    global START_button
+    global START_button_var
+    global one_loop
     parse_object = ParseInput()
 
+    one_loop = False
     gui = tk.Tk()
     gui.title('Reddit Notifier by /u/PC4U')
 
@@ -377,7 +392,8 @@ def create_gui():
     TARGET_EMAIL_entry = tk.Entry(mainframe, width = 30, textvariable = TARGET_EMAIL)
     TARGET_EMAIL_entry.grid(column = 2, row = 10)
 
-    START_button = tk.Button(mainframe, text='Start Automation', command = parse_object.Start)
+    START_button_var = tk.IntVar()
+    START_button = tk.Checkbutton(mainframe, text='Start Automation', command = parse_object.Start, variable = START_button_var)
     START_button.grid(column = 1, row = 11)
 
     SAVE_button = tk.Button(mainframe, text='Save data to config.cfg', command = parse_object.Save)
