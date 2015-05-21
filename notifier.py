@@ -154,7 +154,7 @@ class ParseInput(object):
         for subreddit in subreddit_string_list:
             subreddit = subreddit.strip()
             print 'Adding', subreddit
-            if subreddit.isalnum():
+            if subreddit.isalnum() or subreddit.find('_'):
                 subreddits.append(reddit.get_subreddit(subreddit))
             else:
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
@@ -200,7 +200,7 @@ class ParseInput(object):
                 # put all posts that need to be sent to the user in messages_already_sent
                 for to_send in messages_to_notify_user_about:
                     if to_send not in messages_already_sent:
-                        message_to_send = 'New post with something from ' + search_term + ' in it from the /r/' + str(to_send.subreddit) + '\n\n' + to_send.permalink + '\n\n'
+                        message_to_send = 'New post with something from ' + search_term + ' in it from /r/' + str(to_send.subreddit) + '\n\n' + to_send.permalink + '\n\n'
                         if to_send.is_self:
                             message_to_send += 'Self text here:\n\n'
                             message_to_send += to_send.selftext
