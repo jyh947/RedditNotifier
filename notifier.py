@@ -65,7 +65,7 @@ class ParseInput(object):
             reddit.login(REDDIT_USERNAME, REDDIT_PASSWORD)
             print 'Correct password!'
             REDDIT_LOGIN_var.set('Logged Into Reddit!')
-            return 1
+            return 0
         except Exception as detail:
             tkMessageBox.showerror(title = 'Error!', message = 'Your Reddit password is incorrect!', parent = gui)
             print detail
@@ -124,6 +124,11 @@ class ParseInput(object):
         global START_button
         global START_button_var
         global one_loop
+        global search_terms
+        global subreddits
+        global all_posts
+        global messages_to_notify_user_about
+        global messages_already_sent
 
         if not START_button_var.get():
             return 0
@@ -136,7 +141,6 @@ class ParseInput(object):
         search_term = search_term_entry.get()
         subreddit_string = subreddit_string_entry.get()
         TARGET_EMAIL = TARGET_EMAIL_entry.get()
-        stale_post_time = 600
 
         search_terms = []
         subreddits = []
@@ -154,12 +158,33 @@ class ParseInput(object):
         for subreddit in subreddit_string_list:
             subreddit = subreddit.strip()
             print 'Adding', subreddit
-            if subreddit.isalnum() or subreddit.find('_'):
+            #small bug here
+            if len(subreddit) < 22 and subreddit.find('-') == -1 and subreddit[0] != '_' and len(subreddit) > 0:
+                for char in subreddit:
+                    if not char.isdigit() and not char.isalpha() and char != '_':
+                        tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
+                        return 0
                 subreddits.append(reddit.get_subreddit(subreddit))
             else:
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
+                return 0
         def looping():
+            global reddit
+            global server
+            global sleep_time
+            global TARGET_EMAIL
+            global GMAIL_USERNAME
+            global REDDIT_USERNAME
+            global START_button_var
             global one_loop
+            global search_terms
+            global subreddits
+            global all_posts
+            global messages_to_notify_user_about
+            global messages_already_sent
+
+            stale_post_time = 600
+
             while START_button_var.get():
                 # get current time
                 current_time = time.time()
