@@ -132,7 +132,6 @@ class ParseInput(object):
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui)
             return 0
 
-        console_output = tk.StringVar()
         sleep_time = int(sleep_time_entry.get())
         search_term = search_term_entry.get()
         subreddit_string = subreddit_string_entry.get()
@@ -160,11 +159,11 @@ class ParseInput(object):
             else:
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
         def looping():
+            global one_loop
             while START_button_var.get():
                 # get current time
                 current_time = time.time()
                 posts_this_round = []
-                current_string = ''
                 # get 10 new posts and place into all_posts
                 for subreddit in subreddits:
                     posts_to_grab = 10
@@ -184,7 +183,7 @@ class ParseInput(object):
                             posts_this_round.append(post)
 
                 print 'Found', len(posts_this_round), 'new posts that have been added to the array'
-                current_string += 'Found' + str(len(posts_this_round)) + 'new posts that have been added to the array'
+
                 # put new posts with search term into messages_to_notify_user_about
                 not_notified_posts = 0
                 for new_post in posts_this_round:
@@ -197,7 +196,6 @@ class ParseInput(object):
                             not_notified_posts += 1
 
                 print 'Found', not_notified_posts, 'new posts that need to be sent to the user'
-                current_string += 'Found' + str(not_notified_posts) + 'new posts that have been added to the array'
 
                 # put all posts that need to be sent to the user in messages_already_sent
                 for to_send in messages_to_notify_user_about:
@@ -216,16 +214,18 @@ class ParseInput(object):
 
                 # clear posts older than 'stale_post_time' seconds old
                 print 'Clean-up time'
-                current_string += 'Clean-Up time'
                 cleanup(all_posts, current_time, stale_post_time)
                 cleanup(messages_to_notify_user_about, current_time, stale_post_time)
                 cleanup(messages_already_sent, current_time, stale_post_time)
 
                 #let script sleep for 'sleep_time' seconds
                 print 'Waiting', sleep_time, 'seconds'
-                current_string += 'Waiting' + str(sleep_time) + 'seconds'
-                console_output.set(current_string)
-                time.sleep(sleep_time)
+                for integer in range(sleep_time):
+                    time.sleep(1)
+                    if not START_button_var.get():
+                        print 'Exiting thread'
+                        one_loop = False
+                        return
             print 'Exiting thread'
             one_loop = False
         if not one_loop:
