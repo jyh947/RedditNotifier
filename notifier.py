@@ -18,13 +18,21 @@ class ParseInput(object):
 
         GMAIL_USERNAME = GMAIL_USERNAME_entry.get()
         GMAIL_PASSWORD = GMAIL_PASSWORD_entry.get()
-        GMAIL_USERNAME.replace(' ', '')
-        if GMAIL_USERNAME.find('@gmail.com') == -1:
-            GMAIL_USERNAME += '@gmail.com'
+
+        GMAIL_USERNAME = check_gmail_username(GMAIL_USERNAME)
+        GMAIL_USERNAME_entry.delete(0, 'end')
+        if GMAIL_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui)
+            return 0
+        GMAIL_USERNAME_entry.insert(0, GMAIL_USERNAME)
+        if len(GMAIL_PASSWORD) == 0:
+            tkMessageBox.showerror(title = 'Error!', message = 'Please enter a Gmail password!', parent = gui)
+            return 0
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
         server.starttls()
+
         try:
             server.login(GMAIL_USERNAME, GMAIL_PASSWORD)
             print 'Correct password!'
@@ -37,8 +45,8 @@ class ParseInput(object):
             GMAIL_LOGIN_var.set('Not Logged In!')
             return 0
     def Reddit(self):
-        global reddit
         global gui
+        global reddit
         global REDDIT_USERNAME
         global REDDIT_LOGIN_var
         global REDDIT_USERNAME_entry
@@ -46,9 +54,19 @@ class ParseInput(object):
 
         REDDIT_USERNAME = REDDIT_USERNAME_entry.get()
         REDDIT_PASSWORD = REDDIT_PASSWORD_entry.get()
+
+        REDDIT_USERNAME = check_reddit_username(REDDIT_USERNAME)
+        REDDIT_USERNAME_entry.delete(0, 'end')
+        if REDDIT_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui)
+            return 0
+        REDDIT_USERNAME_entry.insert(0, REDDIT_USERNAME)
         if len(REDDIT_PASSWORD) == 0:
-            REDDIT_PASSWORD += 'a'
+            tkMessageBox.showerror(title = 'Error!', message = 'Please enter a Reddit password!', parent = gui)
+            return 0
+
         reddit = praw.Reddit(user_agent = 'string checker by /u/PC4U v1.1')
+
         try:
             user = reddit.get_redditor(REDDIT_USERNAME)
         except Exception as detail:
@@ -80,25 +98,69 @@ class ParseInput(object):
         global TARGET_EMAIL_entry
         global GMAIL_USERNAME_entry
         global REDDIT_USERNAME_entry
-        global sleep_time
-        global search_term
-        global subreddit_string
-        global TARGET_EMAIL
 
-        sleep_time = int(sleep_time_entry.get())
-        search_term = search_term_entry.get()
-        subreddit_string = subreddit_string_entry.get()
-        TARGET_EMAIL = TARGET_EMAIL_entry.get()
+        TEMP_sleep_time = sleep_time_entry.get()
+        TEMP_search_term = search_term_entry.get()
+        TEMP_subreddit_string = subreddit_string_entry.get()
+        TEMP_TARGET_EMAIL = TARGET_EMAIL_entry.get()
         TEMP_GMAIL_USERNAME = GMAIL_USERNAME_entry.get()
         TEMP_REDDIT_USERNAME = REDDIT_USERNAME_entry.get()
+
+        # Do error checking here
+        subreddit_string_list = TEMP_subreddit_string.split(',')
+        new_subreddit_list = []
+        for subreddit in subreddit_string_list:
+            subreddit = check_subreddits(subreddit)
+            if subreddit == None:
+                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
+            else:
+                new_subreddit_list.append(subreddit)
+
+        string = ''
+        for i in range(len(new_subreddit_list)):
+            string += new_subreddit_list[i] + ', '
+        string = string.strip(', ')
+        subreddit_string_entry.delete(0, 'end')
+        if string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'One subreddit was invalid!', parent = gui)
+        else:
+            subreddit_string_entry.insert(0, string)
+
+        TEMP_sleep_time = check_sleep_time(TEMP_sleep_time)
+        sleep_time_entry.delete(0, 'end')
+        if TEMP_sleep_time == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui)
+        else:
+            sleep_time_entry.insert(0, TEMP_sleep_time)
+
+        TEMP_TARGET_EMAIL = check_target_email(TEMP_TARGET_EMAIL)
+        TARGET_EMAIL_entry.delete(0, 'end')
+        if TEMP_TARGET_EMAIL == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui)
+        else:
+            TARGET_EMAIL_entry.insert(0, TEMP_TARGET_EMAIL)
+
+        TEMP_GMAIL_USERNAME = check_gmail_username(TEMP_GMAIL_USERNAME)
+        GMAIL_USERNAME_entry.delete(0, 'end')
+        if TEMP_GMAIL_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui)
+        else:
+            GMAIL_USERNAME_entry.insert(0, TEMP_GMAIL_USERNAME)
+
+        TEMP_REDDIT_USERNAME = check_reddit_username(TEMP_REDDIT_USERNAME)
+        REDDIT_USERNAME_entry.delete(0, 'end')
+        if TEMP_REDDIT_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui)
+        else:
+            REDDIT_USERNAME_entry.insert(0, TEMP_REDDIT_USERNAME)
 
         cfgfile = open('config.cfg','w')
         Config = ConfigParser.ConfigParser()
         Config.add_section('Main')
-        Config.set('Main', 'sleep_time', sleep_time)
-        Config.set('Main', 'search_term', search_term)
-        Config.set('Main', 'subreddit_string', subreddit_string)
-        Config.set('Main', 'TARGET_EMAIL', TARGET_EMAIL)
+        Config.set('Main', 'sleep_time', TEMP_sleep_time)
+        Config.set('Main', 'search_term', TEMP_search_term)
+        Config.set('Main', 'subreddit_string', TEMP_subreddit_string)
+        Config.set('Main', 'TARGET_EMAIL', TEMP_TARGET_EMAIL)
         Config.set('Main', 'GMAIL_USERNAME', TEMP_GMAIL_USERNAME)
         Config.set('Main', 'REDDIT_USERNAME', TEMP_REDDIT_USERNAME)
         Config.write(cfgfile)
@@ -137,10 +199,25 @@ class ParseInput(object):
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui)
             return 0
 
-        sleep_time = int(sleep_time_entry.get())
+        sleep_time = sleep_time_entry.get()
         search_term = search_term_entry.get()
         subreddit_string = subreddit_string_entry.get()
         TARGET_EMAIL = TARGET_EMAIL_entry.get()
+
+        #do input checking here
+        sleep_time = check_sleep_time(sleep_time)
+        sleep_time_entry.delete(0, 'end')
+        if sleep_time == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui)
+        else:
+            sleep_time_entry.insert(0, sleep_time)
+
+        TARGET_EMAIL = check_target_email(TARGET_EMAIL)
+        TARGET_EMAIL_entry.delete(0, 'end')
+        if TARGET_EMAIL == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui)
+        else:
+            TARGET_EMAIL_entry.insert(0, TARGET_EMAIL)
 
         search_terms = []
         subreddits = []
@@ -156,18 +233,12 @@ class ParseInput(object):
 
         subreddit_string_list = subreddit_string.split(',')
         for subreddit in subreddit_string_list:
-            subreddit = subreddit.strip()
-            print 'Adding', subreddit
-            #small bug here
-            if len(subreddit) < 22 and subreddit.find('-') == -1 and subreddit[0] != '_' and len(subreddit) > 0:
-                for char in subreddit:
-                    if not char.isdigit() and not char.isalpha() and char != '_':
-                        tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
-                        return 0
-                subreddits.append(reddit.get_subreddit(subreddit))
-            else:
+            subreddit = check_subreddits(subreddit)
+            if subreddit == None:
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
-                return 0
+            else:
+                print 'Adding', subreddit
+                subreddits.append(reddit.get_subreddit(subreddit))
         def looping():
             global reddit
             global server
@@ -283,7 +354,12 @@ def get_config_data():
     Config.read('config.cfg')
     try:
         sleep_time = int(Config.get('Main', 'sleep_time'))
-        sleep_time_entry.insert(0, sleep_time)
+        sleep_time = check_sleep_time(sleep_time)
+        sleep_time_entry.delete(0, 'end')
+        if sleep_time == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui)
+        else:
+            sleep_time_entry.insert(0, sleep_time)
     except Exception as detail:
         print 'Missing sleep_time'
     try:
@@ -293,24 +369,103 @@ def get_config_data():
         print 'Missing search_term'
     try:
         subreddit_string = Config.get('Main', 'subreddit_string')
-        subreddit_string_entry.insert(0, subreddit_string)
+        subreddit_string_list = subreddit_string.split(',')
+        new_subreddit_list = []
+        for subreddit in subreddit_string_list:
+            subreddit = check_subreddits(subreddit)
+            if subreddit == None:
+                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
+            else:
+                new_subreddit_list.append(subreddit)
+        string = ''
+        for i in range(len(new_subreddit_list)):
+            string += new_subreddit_list[i] + ', '
+        string = string.strip(', ')
+        subreddit_string_entry.delete(0, 'end')
+        if string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'One subreddit was invalid!', parent = gui)
+        else:
+            subreddit_string = string
+            subreddit_string_entry.insert(0, string)
     except Exception as detail:
         print 'Missing subreddit_string'
     try:
         TARGET_EMAIL = Config.get('Main', 'TARGET_EMAIL')
-        TARGET_EMAIL_entry.insert(0, TARGET_EMAIL)
+        TARGET_EMAIL = check_target_email(TARGET_EMAIL)
+        TARGET_EMAIL_entry.delete(0, 'end')
+        if TARGET_EMAIL == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui)
+        else:
+            TARGET_EMAIL_entry.insert(0, TARGET_EMAIL)
     except Exception as detail:
         print 'Missing TARGET_EMAIL'
     try:
         GMAIL_USERNAME = Config.get('Main', 'GMAIL_USERNAME')
-        GMAIL_USERNAME_entry.insert(0, GMAIL_USERNAME)
+        print GMAIL_USERNAME
+        GMAIL_USERNAME = check_gmail_username(GMAIL_USERNAME)
+        print 'new', GMAIL_USERNAME
+        GMAIL_USERNAME_entry.delete(0, 'end')
+        if GMAIL_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui)
+        else:
+            GMAIL_USERNAME_entry.insert(0, GMAIL_USERNAME)
     except Exception as detail:
         print 'Missing GMAIL_USERNAME'
     try:
         REDDIT_USERNAME = Config.get('Main', 'REDDIT_USERNAME')
-        REDDIT_USERNAME_entry.insert(0, REDDIT_USERNAME)
+        print REDDIT_USERNAME
+        REDDIT_USERNAME = check_reddit_username(REDDIT_USERNAME)
+        print 'new', REDDIT_USERNAME
+        REDDIT_USERNAME_entry.delete(0, 'end')
+        if REDDIT_USERNAME == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui)
+        else:
+            REDDIT_USERNAME_entry.insert(0, REDDIT_USERNAME)
     except Exception as detail:
         print 'Missing REDDIT_USERNAME'
+
+def check_gmail_username(string):
+    string = string.replace(' ', '')
+    if string.find('@gmail.com') == -1:
+        string += '@gmail.com'
+    return string
+
+def check_reddit_username(string):
+    string = string.replace(' ', '')
+    for char in string:
+        if not char.isalnum() and char != '_' and char != '-':
+            print 'bad', char
+            return None
+    return string
+
+def check_sleep_time(string):
+    try:
+        string = int(string)
+    except Exception as detail:
+        return None
+    if string > 600 or string < 30:
+        return None
+    return string
+
+def check_subreddits(string):
+    string = string.strip()
+    if len(string) < 22 and string.find('-') == -1 and string[0] != '_' and len(string) > 0:
+        for char in string:
+            if not char.isdigit() and not char.isalpha() and char != '_':
+                return None
+    else:
+        return None
+    return string
+
+def check_target_email(string):
+    if string.find('@') == -1:
+        return None
+    substring = string.split('@')
+    if len(substring) > 2:
+        return None
+    if substring[1].find('.') == -1:
+        return None
+    return string
 
 def create_gui():
     global gui
@@ -332,6 +487,7 @@ def create_gui():
     one_loop = False
     gui = tk.Tk()
     gui.title('Reddit Notifier by /u/PC4U')
+    gui.resizable(False, False)
 
     mainframe = tk.Frame(gui)
     mainframe.grid(column = 0, row = 0, padx = 10, pady = 10)
@@ -425,6 +581,7 @@ def create_gui():
     SAVE_button.grid(column = 2, row = 11)
 
     get_config_data()
+    parse_object.Save()
 
     gui.mainloop()
 
