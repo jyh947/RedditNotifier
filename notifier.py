@@ -256,6 +256,7 @@ class ParseInput(object):
             subreddit_string_entry.insert(0, string)
 
         def looping():
+            global TEXT_var
             global reddit
             global server
             global sleep_time
@@ -271,8 +272,8 @@ class ParseInput(object):
             global messages_already_sent
 
             stale_post_time = 600
-
             while START_button_var.get():
+                TEXT_var.set('\n\n\n\n')
                 # get current time
                 current_time = time.time()
                 posts_this_round = []
@@ -293,9 +294,9 @@ class ParseInput(object):
                     for post in posts_this_subreddit:
                         if post not in posts_this_round:
                             posts_this_round.append(post)
-
+                current_text = 'Found ' + str(len(posts_this_round)) + ' new posts that have been added to the array\n\n\n'
                 print 'Found', len(posts_this_round), 'new posts that have been added to the array'
-
+                TEXT_var.set(current_text)
                 # put new posts with search term into messages_to_notify_user_about
                 not_notified_posts = 0
                 for new_post in posts_this_round:
@@ -306,9 +307,10 @@ class ParseInput(object):
                         elif new_post.is_self and new_post.selftext.lower().find(temp_search_term) != -1 and new_post not in messages_to_notify_user_about:
                             messages_to_notify_user_about.append(new_post)
                             not_notified_posts += 1
-
+                current_text = current_text.strip('\n')
+                current_text += '\nFound ' + str(not_notified_posts) + ' new posts that need to be sent to the user\n\n'
                 print 'Found', not_notified_posts, 'new posts that need to be sent to the user'
-
+                TEXT_var.set(current_text)
                 # put all posts that need to be sent to the user in messages_already_sent
                 for to_send in messages_to_notify_user_about:
                     if to_send not in messages_already_sent:
@@ -329,17 +331,23 @@ class ParseInput(object):
                 cleanup(all_posts, current_time, stale_post_time)
                 cleanup(messages_to_notify_user_about, current_time, stale_post_time)
                 cleanup(messages_already_sent, current_time, stale_post_time)
-
+                current_text_backup = current_text
                 #let script sleep for 'sleep_time' seconds
-                print 'Waiting', sleep_time, 'seconds'
                 for integer in range(sleep_time):
+                    current_text = current_text.strip('\n')
+                    print 'Waiting', sleep_time - integer, 'seconds'
+                    current_text += '\nWaiting ' + str(sleep_time - integer) + ' seconds\n'
+                    TEXT_var.set(current_text)
+                    current_text = current_text_backup
                     time.sleep(1)
                     if not START_button_var.get():
                         print 'Exiting thread'
+                        TEXT_var.set('Automation Stopped!\n\n\n')
                         one_loop = False
                         return
 
             print 'Exiting thread'
+            TEXT_var.set('Automation Stopped!\n\n\n')
             one_loop = False
 
         if not one_loop:
@@ -483,6 +491,7 @@ def check_target_email(string):
 
 def create_gui():
     global gui
+    global TEXT_var
     global sleep_time_entry
     global search_term_entry
     global subreddit_string_entry
@@ -594,10 +603,20 @@ def create_gui():
     SAVE_button = tk.Button(mainframe, text='Save data to config.cfg', command = parse_object.Save)
     SAVE_button.grid(column = 2, row = 11)
 
+    OUTPUT_var = tk.StringVar()
+    OUTPUT_var.set('Output:')
+    OUTPUT = tk.Label(mainframe, justify = 'left', textvariable = OUTPUT_var)
+    OUTPUT.grid(column = 1, row = 12, columnspan=2)
+
+    TEXT_var = tk.StringVar()
+    TEXT_var.set('\n\n\n\n')
+    TEXT = tk.Label(mainframe, justify = 'left', textvariable = TEXT_var)
+    TEXT.grid(column = 1, row = 13, columnspan=2)
+
     get_config_data()
     parse_object.Save()
 
     gui.mainloop()
 
 if __name__ == '__main__':
-    create_gui()
+    create_gui()    
