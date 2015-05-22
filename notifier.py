@@ -123,7 +123,7 @@ class ParseInput(object):
         string = string.strip(', ')
         subreddit_string_entry.delete(0, 'end')
         if string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'One subreddit was invalid!', parent = gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui)
         else:
             subreddit_string_entry.insert(0, string)
 
@@ -210,6 +210,7 @@ class ParseInput(object):
         sleep_time_entry.delete(0, 'end')
         if sleep_time == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui)
+            return 0
         else:
             sleep_time_entry.insert(0, sleep_time)
 
@@ -217,6 +218,7 @@ class ParseInput(object):
         TARGET_EMAIL_entry.delete(0, 'end')
         if TARGET_EMAIL == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui)
+            return 0
         else:
             TARGET_EMAIL_entry.insert(0, TARGET_EMAIL)
 
@@ -225,6 +227,7 @@ class ParseInput(object):
         all_posts = []
         messages_to_notify_user_about = []
         messages_already_sent = []
+        new_subreddit_list = []
 
         search_term_list = search_term.split(',')
         for search_term_iter in search_term_list:
@@ -239,7 +242,18 @@ class ParseInput(object):
                 tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui)
             else:
                 print 'Adding', subreddit
+                new_subreddit_list.append(subreddit)
                 subreddits.append(reddit.get_subreddit(subreddit))
+        string = ''
+        for i in range(len(new_subreddit_list)):
+            string += new_subreddit_list[i] + ', '
+        string = string.strip(', ')
+        subreddit_string_entry.delete(0, 'end')
+        if string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui)
+        else:
+            subreddit_string = string
+            subreddit_string_entry.insert(0, string)
 
         def looping():
             global reddit
@@ -327,7 +341,7 @@ class ParseInput(object):
 
             print 'Exiting thread'
             one_loop = False
-            
+
         if not one_loop:
             one_loop = True
             thread = threading.Thread(target = looping)
@@ -387,7 +401,7 @@ def get_config_data():
         string = string.strip(', ')
         subreddit_string_entry.delete(0, 'end')
         if string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'One subreddit was invalid!', parent = gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui)
         else:
             subreddit_string = string
             subreddit_string_entry.insert(0, string)
