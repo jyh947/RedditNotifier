@@ -44,6 +44,7 @@ class ParseInput(object):
             print 'Incorrect password! Please try again!'
             GMAIL_LOGIN_var.set('Not Logged In!')
             return 0
+
     def Reddit(self):
         global gui
         global reddit
@@ -239,6 +240,7 @@ class ParseInput(object):
             else:
                 print 'Adding', subreddit
                 subreddits.append(reddit.get_subreddit(subreddit))
+
         def looping():
             global reddit
             global server
@@ -322,8 +324,10 @@ class ParseInput(object):
                         print 'Exiting thread'
                         one_loop = False
                         return
+
             print 'Exiting thread'
             one_loop = False
+            
         if not one_loop:
             one_loop = True
             thread = threading.Thread(target = looping)
@@ -401,9 +405,7 @@ def get_config_data():
         print 'Missing TARGET_EMAIL'
     try:
         GMAIL_USERNAME = Config.get('Main', 'GMAIL_USERNAME')
-        print GMAIL_USERNAME
         GMAIL_USERNAME = check_gmail_username(GMAIL_USERNAME)
-        print 'new', GMAIL_USERNAME
         GMAIL_USERNAME_entry.delete(0, 'end')
         if GMAIL_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui)
@@ -413,9 +415,7 @@ def get_config_data():
         print 'Missing GMAIL_USERNAME'
     try:
         REDDIT_USERNAME = Config.get('Main', 'REDDIT_USERNAME')
-        print REDDIT_USERNAME
         REDDIT_USERNAME = check_reddit_username(REDDIT_USERNAME)
-        print 'new', REDDIT_USERNAME
         REDDIT_USERNAME_entry.delete(0, 'end')
         if REDDIT_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui)
