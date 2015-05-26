@@ -335,6 +335,7 @@ class GUI(object):
         self.mainframe.columnconfigure(0, weight = 1)
         self.mainframe.rowconfigure(0, weight = 1)
 
+        self.title = tk.StringVar()
         self.sleep_time = tk.StringVar()
         self.sleep_time_var = tk.StringVar()
         self.search_term = tk.StringVar()
@@ -357,79 +358,87 @@ class GUI(object):
         self.TEXT_var = tk.StringVar()
         self.START_button_var = tk.IntVar()
 
+        self.title.set('This is a robot will automatically scan all the subreddits\n' +
+        'that you list for all the search term(s) you list and notify you\n' +
+        'whenever it finds a new post with those search term(s) in said new post.\n' +
+        'The robot will use your Gmail account to send an email to the target email.\n' +
+        'The robot will use your Reddit account to send a message to the same Reddit account.\n')
+        self.title_label = tk.Label(self.mainframe, textvariable = self.title)
+        self.title_label.grid(column = 1, row = 0, columnspan = 2)
+
         self.GMAIL_USERNAME_var.set('Gmail Username: ')
         self.GMAIL_USERNAME_label = tk.Label(self.mainframe, textvariable = self.GMAIL_USERNAME_var)
-        self.GMAIL_USERNAME_label.grid(column = 1, row = 1)
+        self.GMAIL_USERNAME_label.grid(column = 1, row = 1, sticky = 'W')
         self.GMAIL_USERNAME_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.GMAIL_USERNAME)
-        self.GMAIL_USERNAME_entry.grid(column = 2, row = 1)
+        self.GMAIL_USERNAME_entry.grid(column = 2, row = 1, sticky = 'W')
 
         self.GMAIL_PASSWORD_var.set('Gmail Password: ')
         self.GMAIL_PASSWORD_label = tk.Label(self.mainframe, textvariable = self.GMAIL_PASSWORD_var)
-        self.GMAIL_PASSWORD_label.grid(column = 1, row = 2)
+        self.GMAIL_PASSWORD_label.grid(column = 1, row = 2, sticky = 'W')
         self.GMAIL_PASSWORD_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.GMAIL_PASSWORD, show = '*')
-        self.GMAIL_PASSWORD_entry.grid(column = 2, row = 2)
+        self.GMAIL_PASSWORD_entry.grid(column = 2, row = 2, sticky = 'W')
 
         self.GMAIL_LOGIN_var.set('Not Logged In!')
         self.GMAIL_LOGIN_label = tk.Label(self.mainframe, textvariable = self.GMAIL_LOGIN_var)
-        self.GMAIL_LOGIN_label.grid(column = 2, row = 3)
+        self.GMAIL_LOGIN_label.grid(column = 2, row = 3, sticky = 'W')
         self.GMAIL_LOGIN_button = tk.Button(self.mainframe, text='Log Into Gmail', command = lambda: self.parse_object.Gmail(self))
-        self.GMAIL_LOGIN_button.grid(column = 1, row = 3)
+        self.GMAIL_LOGIN_button.grid(column = 1, row = 3, sticky = 'W')
 
         self.REDDIT_USERNAME_var.set('Reddit Username: ')
         self.REDDIT_USERNAME_label = tk.Label(self.mainframe, textvariable = self.REDDIT_USERNAME_var)
-        self.REDDIT_USERNAME_label.grid(column = 1, row = 4)
+        self.REDDIT_USERNAME_label.grid(column = 1, row = 4, sticky = 'W')
         self.REDDIT_USERNAME_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.REDDIT_USERNAME)
-        self.REDDIT_USERNAME_entry.grid(column = 2, row = 4)
+        self.REDDIT_USERNAME_entry.grid(column = 2, row = 4, sticky = 'W')
 
         self.REDDIT_PASSWORD_var.set('Reddit Password: ')
         self.REDDIT_PASSWORD_label = tk.Label(self.mainframe, textvariable = self.REDDIT_PASSWORD_var)
-        self.REDDIT_PASSWORD_label.grid(column = 1, row = 5)
+        self.REDDIT_PASSWORD_label.grid(column = 1, row = 5, sticky = 'W')
         self.REDDIT_PASSWORD_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.REDDIT_PASSWORD, show = '*')
-        self.REDDIT_PASSWORD_entry.grid(column = 2, row = 5)
+        self.REDDIT_PASSWORD_entry.grid(column = 2, row = 5, sticky = 'W')
 
         self.REDDIT_LOGIN_var.set('Not Logged In!')
         self.REDDIT_LOGIN_label = tk.Label(self.mainframe, textvariable = self.REDDIT_LOGIN_var)
-        self.REDDIT_LOGIN_label.grid(column = 2, row = 6)
+        self.REDDIT_LOGIN_label.grid(column = 2, row = 6, sticky = 'W')
         self.REDDIT_LOGIN_button = tk.Button(self.mainframe, text='Log Into Reddit', command = lambda: self.parse_object.Reddit(self))
-        self.REDDIT_LOGIN_button.grid(column = 1, row = 6)
+        self.REDDIT_LOGIN_button.grid(column = 1, row = 6, sticky = 'W')
 
         self.sleep_time_var.set('Sleep Time (seconds, between 30 and 600): ')
         self.sleep_time_label = tk.Label(self.mainframe, textvariable = self.sleep_time_var)
-        self.sleep_time_label.grid(column = 1, row = 7)
+        self.sleep_time_label.grid(column = 1, row = 7, sticky = 'W')
         self.sleep_time_entry = tk.Entry(self.mainframe, width = 7, textvariable = self.sleep_time)
-        self.sleep_time_entry.grid(column = 2, row = 7)
+        self.sleep_time_entry.grid(column = 2, row = 7, sticky = 'W')
 
         self.search_term_var.set('Search Term(s), seperate by comma: ')
         self.search_term_label = tk.Label(self.mainframe, textvariable = self.search_term_var)
-        self.search_term_label.grid(column = 1, row = 8)
+        self.search_term_label.grid(column = 1, row = 8, sticky = 'W')
         self.search_term_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.search_term)
-        self.search_term_entry.grid(column = 2, row = 8)
+        self.search_term_entry.grid(column = 2, row = 8, sticky = 'W')
 
         self.subreddit_string_var.set('Subreddits to search through, seperate by comma: ')
         self.subreddit_string_label = tk.Label(self.mainframe, textvariable = self.subreddit_string_var)
-        self.subreddit_string_label.grid(column = 1, row = 9)
+        self.subreddit_string_label.grid(column = 1, row = 9, sticky = 'W')
         self.subreddit_string_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.subreddit_string)
-        self.subreddit_string_entry.grid(column = 2, row = 9)
+        self.subreddit_string_entry.grid(column = 2, row = 9, sticky = 'W')
 
-        self.TARGET_EMAIL_var.set('Target Email: ')
+        self.TARGET_EMAIL_var.set('Target Email (email to notify about new messages): ')
         self.TARGET_EMAIL_label = tk.Label(self.mainframe, textvariable = self.TARGET_EMAIL_var)
-        self.TARGET_EMAIL_label.grid(column = 1, row = 10)
+        self.TARGET_EMAIL_label.grid(column = 1, row = 10, sticky = 'W')
         self.TARGET_EMAIL_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.TARGET_EMAIL)
-        self.TARGET_EMAIL_entry.grid(column = 2, row = 10)
+        self.TARGET_EMAIL_entry.grid(column = 2, row = 10, sticky = 'W')
 
         self.SAVE_button = tk.Button(self.mainframe, text='Save data to config.cfg', command = lambda: self.parse_object.Save(self, False))
-        self.SAVE_button.grid(column = 1, row = 11)
+        self.SAVE_button.grid(column = 1, row = 11, sticky = 'W')
 
         self.START_button = tk.Checkbutton(self.mainframe, text='Start Automation', command = lambda: self.parse_object.Start(self), variable = self.START_button_var, state = 'disabled')
-        self.START_button.grid(column = 2, row = 11)
+        self.START_button.grid(column = 2, row = 11, sticky = 'W')
 
         self.OUTPUT_var.set('Output:')
-        self.OUTPUT = tk.Label(self.mainframe, justify = 'left', textvariable = self.OUTPUT_var)
-        self.OUTPUT.grid(column = 1, row = 12, columnspan=2)
+        self.OUTPUT = tk.Label(self.mainframe, textvariable = self.OUTPUT_var)
+        self.OUTPUT.grid(column = 1, row = 12, columnspan = 2, sticky = 'W')
 
         self.TEXT_var.set('\n\n\n')
-        self.TEXT = tk.Label(self.mainframe, justify = 'left', textvariable = self.TEXT_var)
-        self.TEXT.grid(column = 1, row = 13, columnspan=2)
+        self.TEXT = tk.Label(self.mainframe, textvariable = self.TEXT_var)
+        self.TEXT.grid(column = 1, row = 13, columnspan = 2, sticky = 'W')
 
         get_config_data(self)
         self.parse_object.Save(self, True)
@@ -445,6 +454,8 @@ def cleanup(list, current_time, stale_post_time):
 
 def get_config_data(gui):
     if not os.path.exists('config.cfg'):
+        gui.TARGET_EMAIL_entry.insert(0, 'example@gmail.com')
+        gui.sleep_time_entry.insert(0, '30')
         return
         
     Config = ConfigParser.ConfigParser()
@@ -561,6 +572,8 @@ def check_subreddits(string):
 
 def check_target_email(string):
     string = string.strip()
+    if string == 'example@gmail.com':
+        return None
     if len(string) == 0:
         return None
     if string.find('@') == -1:
