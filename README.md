@@ -5,6 +5,8 @@
 This is a robot for Reddit browsing, coded entirely in Python.  The purpose of this robot is to notify the user whenever the robot finds a new post containing a specific string in a list of subreddits.
 #### Requirements
 The user for this robot must have a Gmail account and a Reddit account with more than 1 link karma.  They must also have Python 2.7.9 with [praw]( https://praw.readthedocs.org/en/v2.1.21/), the Python Reddit api wrapper.
+#### Permissions
+You must allow "less secure applications" to access your gmail account.  You can do that by going [here](https://www.google.com/settings/security/lesssecureapps).  Feel free to read through any of my Python code, I am not doing anything malicious with my robot.
 #### Installation
 ##### Python 2.7.9
 To run the script, you must have the latest version of Python 2 because Tkinter, the GUI library requires the latest version of Python 2.7.  Download it [here](https://www.python.org/downloads/release/python-279/)
