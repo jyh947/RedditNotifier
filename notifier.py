@@ -150,9 +150,6 @@ class ParseInput(object):
         cfgfile.close()
         gui.TEXT_var.set('Saved settings to "config.cfg"\n\n\n')
 
-        def set_output(gui):
-            time.sleep(3)
-            gui.TEXT_var.set('\n\n\n')
         thread = threading.Thread(target = lambda: set_output(gui))
         thread.start() # start parallel computation
         print 'Saving worked!'
@@ -445,6 +442,10 @@ def cleanup(list, current_time, stale_post_time):
 def get_config_data(gui):
     if not os.path.exists('config.cfg'):
         return
+        
+    Config = ConfigParser.ConfigParser()
+    Config.read('config.cfg')
+
     try:
         gui.sleep_time = int(Config.get('Main', 'sleep_time'))
         gui.sleep_time = check_sleep_time(gui.sleep_time)
@@ -510,6 +511,10 @@ def get_config_data(gui):
             gui.REDDIT_USERNAME_entry.insert(0, gui.REDDIT_USERNAME)
     except Exception as detail:
         print 'Missing REDDIT_USERNAME'
+        
+def set_output(gui):
+            time.sleep(3)
+            gui.TEXT_var.set('\n\n\n')
 
 def check_gmail_username(string):
     string = string.strip()
