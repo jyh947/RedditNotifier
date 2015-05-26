@@ -151,7 +151,7 @@ class ParseInput(object):
         gui.TEXT_var.set('Saved settings to "config.cfg"\n\n\n')
 
         thread = threading.Thread(target = lambda: set_output(gui))
-        thread.start() # start parallel computation
+        thread.start()
         print 'Saving worked!'
 
     def Start(self, gui):
@@ -301,12 +301,16 @@ class ParseInput(object):
                         set_to_normal(gui)
                         print 'Exiting thread'
                         gui.TEXT_var.set('Automation Stopped!\n\n\n')
+                        thread = threading.Thread(target = lambda: set_output(gui))
+                        thread.start()
                         gui.one_loop = False
                         return
 
             set_to_normal(gui)
             print 'Exiting thread'
             gui.TEXT_var.set('Automation Stopped!\n\n\n')
+            thread = threading.Thread(target = lambda: set_output(gui))
+            thread.start()
             gui.one_loop = False
 
         if not gui.one_loop:
