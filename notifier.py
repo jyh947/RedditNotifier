@@ -35,9 +35,10 @@ class ParseInput(object):
                 gui.START_button['state'] = 'normal'
 
         except Exception as detail:
-            tkMessageBox.showerror(title = 'Error!', message = 'Your Gmail password is incorrect!', parent = gui.gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Message from Gmail:\n' + str(detail), parent = gui.gui)
             print detail
             print 'Incorrect password! Please try again!'
+            gui.START_button['state'] = 'disabled'
             gui.GMAIL_LOGIN_var.set('Not Logged In!')
 
     def Reddit(self, gui):
@@ -59,10 +60,11 @@ class ParseInput(object):
         try:
             user = self.reddit.get_redditor(gui.REDDIT_USERNAME)
         except Exception as detail:
-            tkMessageBox.showerror(title = 'Error!', message = 'Your Reddit username does not exist!', parent = gui.gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Message from Reddit:\n' + str(detail), parent = gui.gui)
             print detail
             print 'Incorrect password! Please try again!'
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
+            gui.START_button['state'] = 'disabled'
             return 0
         if user.link_karma < 0:
             tkMessageBox.showerror(title = 'Error!', message = 'You must have at least 1 link karma!', parent = gui.gui)
@@ -75,10 +77,11 @@ class ParseInput(object):
             if gui.GMAIL_LOGIN_var.get() == 'Logged Into Gmail!':
                 gui.START_button['state'] = 'normal'
         except Exception as detail:
-            tkMessageBox.showerror(title = 'Error!', message = 'Your Reddit password is incorrect!', parent = gui.gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Message from Reddit:\n' + str(detail), parent = gui.gui)
             print detail
             print 'Incorrect password! Please try again!'
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
+            gui.START_button['state'] = 'disabled'
 
     def Save(self, gui):
         TEMP_search_term = gui.search_term_entry.get()
@@ -89,24 +92,20 @@ class ParseInput(object):
         TEMP_REDDIT_USERNAME = gui.REDDIT_USERNAME_entry.get()
 
         # Do error checking here
-        subreddit_string_list = TEMP_subreddit_string.split(',')
-        new_subreddit_list = []
-        for subreddit in subreddit_string_list:
-            subreddit = check_subreddits(subreddit)
-            if subreddit == None:
-                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui.gui)
-            else:
-                new_subreddit_list.append(subreddit)
 
-        string = ''
-        for i in range(len(new_subreddit_list)):
-            string += new_subreddit_list[i] + ', '
-        string = string.strip(', ')
-        gui.subreddit_string_entry.delete(0, 'end')
-        if string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui.gui)
+        new_search_term_list, TEMP_search_term = clean_list_string(TEMP_search_term, False, gui)
+        gui.search_term_entry.delete(0, 'end')
+        if TEMP_search_term == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
         else:
-            gui.subreddit_string_entry.insert(0, string)
+            gui.search_term_entry.insert(0, TEMP_search_term)
+
+        new_subreddit_list, TEMP_subreddit_string = clean_list_string(TEMP_subreddit_string, True, gui)
+        gui.subreddit_string_entry.delete(0, 'end')
+        if TEMP_subreddit_string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
+        else:
+            gui.subreddit_string_entry.insert(0, TEMP_subreddit_string)
 
         TEMP_sleep_time = check_sleep_time(TEMP_sleep_time)
         gui.sleep_time_entry.delete(0, 'end')
@@ -147,6 +146,13 @@ class ParseInput(object):
         Config.set('Main', 'REDDIT_USERNAME', TEMP_REDDIT_USERNAME)
         Config.write(cfgfile)
         cfgfile.close()
+        gui.TEXT_var.set('Saved settings to "config.cfg"\n\n\n')
+
+        def set_output(gui):
+            time.sleep(3)
+            gui.TEXT_var.set('\n\n\n')
+        thread = threading.Thread(target = lambda: set_output(gui))
+        thread.start() # start parallel computation
         print 'Saving worked!'
 
     def Start(self, gui):
@@ -180,6 +186,7 @@ class ParseInput(object):
         gui.sleep_time_entry.delete(0, 'end')
         if gui.sleep_time == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui.gui)
+            set_to_normal(gui)
             return 0
         else:
             gui.sleep_time_entry.insert(0, gui.sleep_time)
@@ -188,6 +195,7 @@ class ParseInput(object):
         gui.TARGET_EMAIL_entry.delete(0, 'end')
         if gui.TARGET_EMAIL == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui.gui)
+            set_to_normal(gui)
             return 0
         else:
             gui.TARGET_EMAIL_entry.insert(0, gui.TARGET_EMAIL)
@@ -199,36 +207,26 @@ class ParseInput(object):
         self.messages_already_sent = []
         new_subreddit_list = []
 
-        search_term_list = gui.search_term.split(',')
-        for search_term_iter in search_term_list:
-            search_term_iter = search_term_iter.strip()
-            print 'Adding', search_term_iter
-            self.search_terms.append(search_term_iter)
-
-        subreddit_string_list = gui.subreddit_string.split(',')
-        for subreddit in subreddit_string_list:
-            subreddit = check_subreddits(subreddit)
-            if subreddit == None:
-                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui.gui)
-            else:
-                print 'Adding', subreddit
-                new_subreddit_list.append(subreddit)
-                self.subreddits.append(self.reddit.get_subreddit(subreddit))
-        string = ''
-        for i in range(len(new_subreddit_list)):
-            string += new_subreddit_list[i] + ', '
-        string = string.strip(', ')
-        gui.subreddit_string_entry.delete(0, 'end')
-        if string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui.gui)
+        self.search_terms, gui.search_term = clean_list_string(gui.search_term, False, gui)
+        gui.search_term_entry.delete(0, 'end')
+        if gui.search_term == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
         else:
-            gui.subreddit_string = string
-            gui.subreddit_string_entry.insert(0, string)
+            gui.search_term_entry.insert(0, gui.search_term)
+
+        new_subreddit_list, gui.subreddit_string = clean_list_string(gui.subreddit_string, True, gui)
+        gui.subreddit_string_entry.delete(0, 'end')
+        if gui.subreddit_string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
+        else:
+            gui.subreddit_string_entry.insert(0, gui.subreddit_string)
+        for subreddit in new_subreddit_list:
+            self.subreddits.append(self.reddit.get_subreddit(subreddit))
 
         def looping(self, gui):
             stale_post_time = 600
             while gui.START_button_var.get():
-                gui.TEXT_var.set('\n\n\n\n')
+                gui.TEXT_var.set('\n\n\n')
                 # get current time
                 current_time = time.time()
                 posts_this_round = []
@@ -296,33 +294,13 @@ class ParseInput(object):
                     current_text = current_text_backup
                     time.sleep(1)
                     if not gui.START_button_var.get():
-                        gui.GMAIL_USERNAME_entry['state'] = 'normal'
-                        gui.GMAIL_PASSWORD_entry['state'] = 'normal'
-                        gui.GMAIL_LOGIN_button['state'] = 'normal'
-                        gui.REDDIT_USERNAME_entry['state'] = 'normal'
-                        gui.REDDIT_PASSWORD_entry['state'] = 'normal'
-                        gui.REDDIT_LOGIN_button['state'] = 'normal'
-                        gui.sleep_time_entry['state'] = 'normal'
-                        gui.search_term_entry['state'] = 'normal'
-                        gui.subreddit_string_entry['state'] = 'normal'
-                        gui.TARGET_EMAIL_entry['state'] = 'normal'
-                        gui.SAVE_button['state'] = 'normal'
+                        set_to_normal(gui)
                         print 'Exiting thread'
                         gui.TEXT_var.set('Automation Stopped!\n\n\n')
                         gui.one_loop = False
                         return
 
-            gui.GMAIL_USERNAME_entry['state'] = 'normal'
-            gui.GMAIL_PASSWORD_entry['state'] = 'normal'
-            gui.GMAIL_LOGIN_button['state'] = 'normal'
-            gui.REDDIT_USERNAME_entry['state'] = 'normal'
-            gui.REDDIT_PASSWORD_entry['state'] = 'normal'
-            gui.REDDIT_LOGIN_button['state'] = 'normal'
-            gui.sleep_time_entry['state'] = 'normal'
-            gui.search_term_entry['state'] = 'normal'
-            gui.subreddit_string_entry['state'] = 'normal'
-            gui.TARGET_EMAIL_entry['state'] = 'normal'
-            gui.SAVE_button['state'] = 'normal'
+            set_to_normal(gui)
             print 'Exiting thread'
             gui.TEXT_var.set('Automation Stopped!\n\n\n')
             gui.one_loop = False
@@ -342,6 +320,7 @@ class GUI(object):
         self.gui = tk.Tk()
         self.gui.title('Reddit Notifier by /u/PC4U')
         self.gui.resizable(False, False)
+        self.gui.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
         self.mainframe = tk.Frame(self.gui)
         self.mainframe.grid(column = 0, row = 0, padx = 10, pady = 10)
@@ -440,13 +419,17 @@ class GUI(object):
         self.OUTPUT = tk.Label(self.mainframe, justify = 'left', textvariable = self.OUTPUT_var)
         self.OUTPUT.grid(column = 1, row = 12, columnspan=2)
 
-        self.TEXT_var.set('\n\n\n\n')
+        self.TEXT_var.set('\n\n\n')
         self.TEXT = tk.Label(self.mainframe, justify = 'left', textvariable = self.TEXT_var)
         self.TEXT.grid(column = 1, row = 13, columnspan=2)
 
         get_config_data(self)
         self.parse_object.Save(self)
-        
+
+def on_closing(gui):
+    gui.START_button.deselect()
+    gui.gui.quit()
+
 def cleanup(list, current_time, stale_post_time):
     for post in list:
         if (current_time - post.created_utc) > stale_post_time:
@@ -468,32 +451,23 @@ def get_config_data(gui):
 
     try:
         gui.search_term = Config.get('Main', 'search_term')
-        #cleaning string here
-        gui.search_term_entry.insert(0, gui.search_term)
+        new_search_term_list, gui.search_term = clean_list_string(gui.search_term, False, gui)
+        gui.search_term_entry.delete(0, 'end')
+        if gui.search_term == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
+        else:
+            gui.search_term_entry.insert(0, gui.search_term)
     except Exception as detail:
         print 'Missing search_term'
 
     try:
         gui.subreddit_string = Config.get('Main', 'subreddit_string')
-        subreddit_string_list = gui.subreddit_string.split(',')
-        new_subreddit_list = []
-        for subreddit in subreddit_string_list:
-            subreddit = check_subreddits(subreddit)
-            if subreddit == None:
-                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + subreddit + '" does not exist!', parent = gui.gui)
-            else:
-                new_subreddit_list.append(subreddit)
-        #cleaning string here
-        string = ''
-        for i in range(len(new_subreddit_list)):
-            string += new_subreddit_list[i] + ', '
-        string = string.strip(', ')
+        new_subreddit_list, gui.subreddit_string = clean_list_string(gui.subreddit_string, True, gui)
         gui.subreddit_string_entry.delete(0, 'end')
-        if string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid!', parent = gui.gui)
+        if gui.subreddit_string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
         else:
-            gui.subreddit_string = string
-            gui.subreddit_string_entry.insert(0, string)
+            gui.subreddit_string_entry.insert(0, gui.subreddit_string)
     except Exception as detail:
         print 'Missing subreddit_string'
 
@@ -555,6 +529,8 @@ def check_sleep_time(string):
 
 def check_subreddits(string):
     string = string.strip()
+    if len(string) == 0:
+        return None
     if len(string) < 22 and string.find('-') == -1 and string[0] != '_' and len(string) > 0:
         for char in string:
             if not char.isdigit() and not char.isalpha() and char != '_':
@@ -573,8 +549,41 @@ def check_target_email(string):
         return None
     return string
 
-def clean_list_string(string):
-    test = 0
+def clean_list_string(string, subreddit, gui):
+    string = string.strip()
+    string_list = string.split(',')
+    new_string_list = []
+    new_string = ''
+    for it in string_list:
+        print 'it', it
+        it = it.strip()
+        if subreddit:
+            result = check_subreddits(it)
+            if result == None or result.isspace() or len(result) == 0:
+                tkMessageBox.showerror(title = 'Error!', message = 'Subreddit: "' + it + '" does not exist!', parent = gui.gui)
+            else:
+                print 'Adding', result
+                new_string_list.append(result)
+                new_string += result + ', '
+        else:
+            print 'Adding', it
+            new_string_list.append(it)
+            new_string += it + ', '
+    new_string = new_string.strip(', ')
+    return new_string_list, new_string
+
+def set_to_normal(gui):
+    gui.GMAIL_USERNAME_entry['state'] = 'normal'
+    gui.GMAIL_PASSWORD_entry['state'] = 'normal'
+    gui.GMAIL_LOGIN_button['state'] = 'normal'
+    gui.REDDIT_USERNAME_entry['state'] = 'normal'
+    gui.REDDIT_PASSWORD_entry['state'] = 'normal'
+    gui.REDDIT_LOGIN_button['state'] = 'normal'
+    gui.sleep_time_entry['state'] = 'normal'
+    gui.search_term_entry['state'] = 'normal'
+    gui.subreddit_string_entry['state'] = 'normal'
+    gui.TARGET_EMAIL_entry['state'] = 'normal'
+    gui.SAVE_button['state'] = 'normal'
 
 if __name__ == '__main__':
     gui = GUI()
