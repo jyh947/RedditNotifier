@@ -156,13 +156,6 @@ class ParseInput(object):
         print 'Saving worked!'
 
     def Start(self, gui):
-        if not gui.START_button_var.get():
-            return 0
-        if gui.GMAIL_LOGIN_var.get() != 'Logged Into Gmail!' or gui.REDDIT_LOGIN_var.get() != 'Logged Into Reddit!':
-            gui.START_button.deselect()
-            tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui.gui)
-            return 0
-
         # Disable buttons here
         gui.GMAIL_USERNAME_entry['state'] = 'disabled'
         gui.GMAIL_PASSWORD_entry['state'] = 'disabled'
@@ -176,6 +169,16 @@ class ParseInput(object):
         gui.TARGET_EMAIL_entry['state'] = 'disabled'
         gui.SAVE_button['state'] = 'disabled'
 
+        if not gui.START_button_var.get():
+            set_to_normal(gui)
+            return 0
+        if gui.GMAIL_LOGIN_var.get() != 'Logged Into Gmail!' or gui.REDDIT_LOGIN_var.get() != 'Logged Into Reddit!':
+            set_to_normal(gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui.gui)
+            return 0
+
+
+
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
         gui.subreddit_string = gui.subreddit_string_entry.get()
@@ -185,8 +188,8 @@ class ParseInput(object):
         gui.sleep_time = check_sleep_time(gui.sleep_time)
         gui.sleep_time_entry.delete(0, 'end')
         if gui.sleep_time == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui.gui)
             set_to_normal(gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui.gui)
             return 0
         else:
             gui.sleep_time_entry.insert(0, gui.sleep_time)
@@ -194,8 +197,8 @@ class ParseInput(object):
         gui.TARGET_EMAIL = check_target_email(gui.TARGET_EMAIL)
         gui.TARGET_EMAIL_entry.delete(0, 'end')
         if gui.TARGET_EMAIL == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui.gui)
             set_to_normal(gui)
+            tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui.gui)
             return 0
         else:
             gui.TARGET_EMAIL_entry.insert(0, gui.TARGET_EMAIL)
@@ -210,14 +213,18 @@ class ParseInput(object):
         self.search_terms, gui.search_term = clean_list_string(gui.search_term, False, gui)
         gui.search_term_entry.delete(0, 'end')
         if gui.search_term == None:
+            set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
+            return 0
         else:
             gui.search_term_entry.insert(0, gui.search_term)
 
         new_subreddit_list, gui.subreddit_string = clean_list_string(gui.subreddit_string, True, gui)
         gui.subreddit_string_entry.delete(0, 'end')
         if gui.subreddit_string == None:
+            set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
+            return 0
         else:
             gui.subreddit_string_entry.insert(0, gui.subreddit_string)
         for subreddit in new_subreddit_list:
@@ -555,7 +562,6 @@ def clean_list_string(string, subreddit, gui):
     new_string_list = []
     new_string = ''
     for it in string_list:
-        print 'it', it
         it = it.strip()
         if subreddit:
             result = check_subreddits(it)
@@ -573,6 +579,7 @@ def clean_list_string(string, subreddit, gui):
     return new_string_list, new_string
 
 def set_to_normal(gui):
+    gui.START_button.deselect()
     gui.GMAIL_USERNAME_entry['state'] = 'normal'
     gui.GMAIL_PASSWORD_entry['state'] = 'normal'
     gui.GMAIL_LOGIN_button['state'] = 'normal'
