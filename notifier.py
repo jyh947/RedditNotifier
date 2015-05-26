@@ -177,8 +177,6 @@ class ParseInput(object):
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui.gui)
             return 0
 
-
-
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
         gui.subreddit_string = gui.subreddit_string_entry.get()
@@ -315,7 +313,7 @@ class ParseInput(object):
         if not gui.one_loop:
             gui.one_loop = True
             thread = threading.Thread(target = lambda: looping(self, gui))
-            thread.start() # start parallel computation
+            thread.start()
         else:
             print 'One thread is already active'
 
