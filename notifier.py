@@ -523,6 +523,7 @@ def check_gmail_username(string):
     string = string.replace(' ', '')
     if string.find('@gmail.com') == -1:
         string += '@gmail.com'
+    string = check_target_email(string)
     return string
 
 def check_reddit_username(string):
@@ -561,6 +562,8 @@ def check_target_email(string):
     if string.find('@') == -1:
         return None
     substring = string.split('@')
+    if substring[0].find('@') != -1 or substring[1].find('@') != -1:
+        return None
     if len(substring) > 2:
         return None
     if substring[1].find('.') == -1:
