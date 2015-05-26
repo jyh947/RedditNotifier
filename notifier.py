@@ -31,13 +31,14 @@ class ParseInput(object):
             self.server.login(gui.GMAIL_USERNAME, gui.GMAIL_PASSWORD)
             print 'Correct password!'
             gui.GMAIL_LOGIN_var.set('Logged Into Gmail!')
-            return 1
+            if gui.REDDIT_LOGIN_var.get() == 'Logged Into Reddit!':
+                gui.START_button['state'] = 'normal'
+
         except Exception as detail:
             tkMessageBox.showerror(title = 'Error!', message = 'Your Gmail password is incorrect!', parent = gui.gui)
             print detail
             print 'Incorrect password! Please try again!'
             gui.GMAIL_LOGIN_var.set('Not Logged In!')
-            return 0
 
     def Reddit(self, gui):
         gui.REDDIT_USERNAME = gui.REDDIT_USERNAME_entry.get()
@@ -71,13 +72,13 @@ class ParseInput(object):
             self.reddit.login(gui.REDDIT_USERNAME, gui.REDDIT_PASSWORD)
             print 'Correct password!'
             gui.REDDIT_LOGIN_var.set('Logged Into Reddit!')
-            return 0
+            if gui.GMAIL_LOGIN_var.get() == 'Logged Into Gmail!':
+                gui.START_button['state'] = 'normal'
         except Exception as detail:
             tkMessageBox.showerror(title = 'Error!', message = 'Your Reddit password is incorrect!', parent = gui.gui)
             print detail
             print 'Incorrect password! Please try again!'
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
-            return 0
 
     def Save(self, gui):
         TEMP_search_term = gui.search_term_entry.get()
@@ -155,7 +156,20 @@ class ParseInput(object):
             gui.START_button.deselect()
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui.gui)
             return 0
-        #TODO: Disable buttons here
+
+        # Disable buttons here
+        gui.GMAIL_USERNAME_entry['state'] = 'disabled'
+        gui.GMAIL_PASSWORD_entry['state'] = 'disabled'
+        gui.GMAIL_LOGIN_button['state'] = 'disabled'
+        gui.REDDIT_USERNAME_entry['state'] = 'disabled'
+        gui.REDDIT_PASSWORD_entry['state'] = 'disabled'
+        gui.REDDIT_LOGIN_button['state'] = 'disabled'
+        gui.sleep_time_entry['state'] = 'disabled'
+        gui.search_term_entry['state'] = 'disabled'
+        gui.subreddit_string_entry['state'] = 'disabled'
+        gui.TARGET_EMAIL_entry['state'] = 'disabled'
+        gui.SAVE_button['state'] = 'disabled'
+
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
         gui.subreddit_string = gui.subreddit_string_entry.get()
@@ -282,11 +296,33 @@ class ParseInput(object):
                     current_text = current_text_backup
                     time.sleep(1)
                     if not gui.START_button_var.get():
+                        gui.GMAIL_USERNAME_entry['state'] = 'normal'
+                        gui.GMAIL_PASSWORD_entry['state'] = 'normal'
+                        gui.GMAIL_LOGIN_button['state'] = 'normal'
+                        gui.REDDIT_USERNAME_entry['state'] = 'normal'
+                        gui.REDDIT_PASSWORD_entry['state'] = 'normal'
+                        gui.REDDIT_LOGIN_button['state'] = 'normal'
+                        gui.sleep_time_entry['state'] = 'normal'
+                        gui.search_term_entry['state'] = 'normal'
+                        gui.subreddit_string_entry['state'] = 'normal'
+                        gui.TARGET_EMAIL_entry['state'] = 'normal'
+                        gui.SAVE_button['state'] = 'normal'
                         print 'Exiting thread'
                         gui.TEXT_var.set('Automation Stopped!\n\n\n')
                         gui.one_loop = False
                         return
 
+            gui.GMAIL_USERNAME_entry['state'] = 'normal'
+            gui.GMAIL_PASSWORD_entry['state'] = 'normal'
+            gui.GMAIL_LOGIN_button['state'] = 'normal'
+            gui.REDDIT_USERNAME_entry['state'] = 'normal'
+            gui.REDDIT_PASSWORD_entry['state'] = 'normal'
+            gui.REDDIT_LOGIN_button['state'] = 'normal'
+            gui.sleep_time_entry['state'] = 'normal'
+            gui.search_term_entry['state'] = 'normal'
+            gui.subreddit_string_entry['state'] = 'normal'
+            gui.TARGET_EMAIL_entry['state'] = 'normal'
+            gui.SAVE_button['state'] = 'normal'
             print 'Exiting thread'
             gui.TEXT_var.set('Automation Stopped!\n\n\n')
             gui.one_loop = False
@@ -394,11 +430,11 @@ class GUI(object):
         self.TARGET_EMAIL_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.TARGET_EMAIL)
         self.TARGET_EMAIL_entry.grid(column = 2, row = 10)
 
-        self.START_button = tk.Checkbutton(self.mainframe, text='Start Automation', command = lambda: self.parse_object.Start(self), variable = self.START_button_var)
-        self.START_button.grid(column = 1, row = 11)
-
         self.SAVE_button = tk.Button(self.mainframe, text='Save data to config.cfg', command = lambda: self.parse_object.Save(self))
-        self.SAVE_button.grid(column = 2, row = 11)
+        self.SAVE_button.grid(column = 1, row = 11)
+
+        self.START_button = tk.Checkbutton(self.mainframe, text='Start Automation', command = lambda: self.parse_object.Start(self), variable = self.START_button_var, state = 'disabled')
+        self.START_button.grid(column = 2, row = 11)
 
         self.OUTPUT_var.set('Output:')
         self.OUTPUT = tk.Label(self.mainframe, justify = 'left', textvariable = self.OUTPUT_var)
