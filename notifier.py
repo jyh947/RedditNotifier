@@ -528,8 +528,8 @@ def get_config_data(gui):
         print 'Missing REDDIT_USERNAME'
         
 def set_output(gui):
-            time.sleep(3)
-            gui.TEXT_var.set('\n\n\n')
+    time.sleep(3)
+    gui.TEXT_var.set('\n\n\n')
 
 def check_gmail_username(string):
     string = string.strip()
