@@ -1,11 +1,12 @@
 import praw
 import time
+import os.path
 import smtplib
 import getpass
-import Tkinter as tk
+import threading
 import ConfigParser
 import tkMessageBox
-import threading
+import Tkinter as tk
 
 class ParseInput(object):
     def Gmail(self, gui):
@@ -17,11 +18,11 @@ class ParseInput(object):
 
         if gui.GMAIL_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui.gui)
-            return 0
+            return
         gui.GMAIL_USERNAME_entry.insert(0, gui.GMAIL_USERNAME)
         if len(gui.GMAIL_PASSWORD) == 0:
             tkMessageBox.showerror(title = 'Error!', message = 'Please enter a Gmail password!', parent = gui.gui)
-            return 0
+            return
 
         self.server = smtplib.SMTP('smtp.gmail.com', 587)
         self.server.ehlo()
@@ -49,11 +50,11 @@ class ParseInput(object):
         gui.REDDIT_USERNAME_entry.delete(0, 'end')
         if gui.REDDIT_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui.gui)
-            return 0
+            return
         gui.REDDIT_USERNAME_entry.insert(0, gui.REDDIT_USERNAME)
         if len(gui.REDDIT_PASSWORD) == 0:
             tkMessageBox.showerror(title = 'Error!', message = 'Please enter a Reddit password!', parent = gui.gui)
-            return 0
+            return
 
         self.reddit = praw.Reddit(user_agent = 'string checker by /u/PC4U v2.0')
 
@@ -65,10 +66,10 @@ class ParseInput(object):
             print 'Incorrect password! Please try again!'
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
             gui.START_button['state'] = 'disabled'
-            return 0
+            return
         if user.link_karma < 0:
             tkMessageBox.showerror(title = 'Error!', message = 'You must have at least 1 link karma!', parent = gui.gui)
-            return 0
+            return
         # authentication
         try:
             self.reddit.login(gui.REDDIT_USERNAME, gui.REDDIT_PASSWORD)
@@ -83,8 +84,9 @@ class ParseInput(object):
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
             gui.START_button['state'] = 'disabled'
 
-    def Save(self, gui):
-
+    def Save(self, gui, startup):
+        if not os.path.exists('config.cfg') and startup:
+            return
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
         gui.subreddit_string = gui.subreddit_string_entry.get()
@@ -171,11 +173,11 @@ class ParseInput(object):
 
         if not gui.START_button_var.get():
             set_to_normal(gui)
-            return 0
+            return
         if gui.GMAIL_LOGIN_var.get() != 'Logged Into Gmail!' or gui.REDDIT_LOGIN_var.get() != 'Logged Into Reddit!':
             set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'Please login to both Gmail and Reddit!', parent = gui.gui)
-            return 0
+            return
 
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
@@ -188,7 +190,7 @@ class ParseInput(object):
         if gui.sleep_time == None:
             set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui.gui)
-            return 0
+            return
         else:
             gui.sleep_time_entry.insert(0, gui.sleep_time)
 
@@ -197,7 +199,7 @@ class ParseInput(object):
         if gui.TARGET_EMAIL == None:
             set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui.gui)
-            return 0
+            return
         else:
             gui.TARGET_EMAIL_entry.insert(0, gui.TARGET_EMAIL)
 
@@ -213,7 +215,7 @@ class ParseInput(object):
         if gui.search_term == None:
             set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
-            return 0
+            return
         else:
             gui.search_term_entry.insert(0, gui.search_term)
 
@@ -222,7 +224,7 @@ class ParseInput(object):
         if gui.subreddit_string == None:
             set_to_normal(gui)
             tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
-            return 0
+            return
         else:
             gui.subreddit_string_entry.insert(0, gui.subreddit_string)
         for subreddit in new_subreddit_list:
@@ -414,7 +416,7 @@ class GUI(object):
         self.TARGET_EMAIL_entry = tk.Entry(self.mainframe, width = 30, textvariable = self.TARGET_EMAIL)
         self.TARGET_EMAIL_entry.grid(column = 2, row = 10)
 
-        self.SAVE_button = tk.Button(self.mainframe, text='Save data to config.cfg', command = lambda: self.parse_object.Save(self))
+        self.SAVE_button = tk.Button(self.mainframe, text='Save data to config.cfg', command = lambda: self.parse_object.Save(self, False))
         self.SAVE_button.grid(column = 1, row = 11)
 
         self.START_button = tk.Checkbutton(self.mainframe, text='Start Automation', command = lambda: self.parse_object.Start(self), variable = self.START_button_var, state = 'disabled')
@@ -429,7 +431,7 @@ class GUI(object):
         self.TEXT.grid(column = 1, row = 13, columnspan=2)
 
         get_config_data(self)
-        self.parse_object.Save(self)
+        self.parse_object.Save(self, True)
 
 def on_closing(gui):
     gui.START_button.deselect()
@@ -441,8 +443,8 @@ def cleanup(list, current_time, stale_post_time):
             list.remove(post)
 
 def get_config_data(gui):
-    Config = ConfigParser.ConfigParser()
-    Config.read('config.cfg')
+    if not os.path.exists('config.cfg'):
+        return
     try:
         gui.sleep_time = int(Config.get('Main', 'sleep_time'))
         gui.sleep_time = check_sleep_time(gui.sleep_time)
@@ -510,6 +512,9 @@ def get_config_data(gui):
         print 'Missing REDDIT_USERNAME'
 
 def check_gmail_username(string):
+    string = string.strip()
+    if len(string) == 0:
+        return None
     string = string.replace(' ', '')
     if string.find('@gmail.com') == -1:
         string += '@gmail.com'
@@ -545,6 +550,9 @@ def check_subreddits(string):
     return string
 
 def check_target_email(string):
+    string = string.strip()
+    if len(string) == 0:
+        return None
     if string.find('@') == -1:
         return None
     substring = string.split('@')
