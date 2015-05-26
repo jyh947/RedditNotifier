@@ -84,66 +84,66 @@ class ParseInput(object):
             gui.START_button['state'] = 'disabled'
 
     def Save(self, gui):
-        TEMP_search_term = gui.search_term_entry.get()
-        TEMP_subreddit_string = gui.subreddit_string_entry.get()
-        TEMP_sleep_time = gui.sleep_time_entry.get()
-        TEMP_TARGET_EMAIL = gui.TARGET_EMAIL_entry.get()
-        TEMP_GMAIL_USERNAME = gui.GMAIL_USERNAME_entry.get()
-        TEMP_REDDIT_USERNAME = gui.REDDIT_USERNAME_entry.get()
+
+        gui.sleep_time = gui.sleep_time_entry.get()
+        gui.search_term = gui.search_term_entry.get()
+        gui.subreddit_string = gui.subreddit_string_entry.get()
+        gui.TARGET_EMAIL = gui.TARGET_EMAIL_entry.get()
+        gui.GMAIL_USERNAME = gui.GMAIL_USERNAME_entry.get()
+        gui.REDDIT_USERNAME = gui.REDDIT_USERNAME_entry.get()
 
         # Do error checking here
-
-        new_search_term_list, TEMP_search_term = clean_list_string(TEMP_search_term, False, gui)
-        gui.search_term_entry.delete(0, 'end')
-        if TEMP_search_term == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
-        else:
-            gui.search_term_entry.insert(0, TEMP_search_term)
-
-        new_subreddit_list, TEMP_subreddit_string = clean_list_string(TEMP_subreddit_string, True, gui)
-        gui.subreddit_string_entry.delete(0, 'end')
-        if TEMP_subreddit_string == None:
-            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
-        else:
-            gui.subreddit_string_entry.insert(0, TEMP_subreddit_string)
-
-        TEMP_sleep_time = check_sleep_time(TEMP_sleep_time)
+        gui.sleep_term = check_sleep_time(gui.sleep_time)
         gui.sleep_time_entry.delete(0, 'end')
-        if TEMP_sleep_time == None:
+        if gui.sleep_time == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad sleep time!', parent = gui.gui)
         else:
-            gui.sleep_time_entry.insert(0, TEMP_sleep_time)
+            gui.sleep_time_entry.insert(0, gui.sleep_time)
 
-        TEMP_TARGET_EMAIL = check_target_email(TEMP_TARGET_EMAIL)
+        new_search_term_list, gui.search_term = clean_list_string(gui.search_term, False, gui)
+        gui.search_term_entry.delete(0, 'end')
+        if gui.search_term == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All search terms were invalid or none were entered!', parent = gui.gui)
+        else:
+            gui.search_term_entry.insert(0, gui.search_term)
+
+        new_subreddit_list, gui.subreddit_string = clean_list_string(gui.subreddit_string, True, gui)
+        gui.subreddit_string_entry.delete(0, 'end')
+        if gui.subreddit_string == None:
+            tkMessageBox.showerror(title = 'Error!', message = 'All subreddits were invalid or none were entered!', parent = gui.gui)
+        else:
+            gui.subreddit_string_entry.insert(0, gui.subreddit_string)
+
+        gui.TARGET_EMAIL = check_target_email(gui.TARGET_EMAIL)
         gui.TARGET_EMAIL_entry.delete(0, 'end')
-        if TEMP_TARGET_EMAIL == None:
+        if gui.TARGET_EMAIL == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad target email!', parent = gui.gui)
         else:
-            gui.TARGET_EMAIL_entry.insert(0, TEMP_TARGET_EMAIL)
+            gui.TARGET_EMAIL_entry.insert(0, gui.TARGET_EMAIL)
 
-        TEMP_GMAIL_USERNAME = check_gmail_username(TEMP_GMAIL_USERNAME)
+        gui.GMAIL_USERNAME = check_gmail_username(gui.GMAIL_USERNAME)
         gui.GMAIL_USERNAME_entry.delete(0, 'end')
-        if TEMP_GMAIL_USERNAME == None:
+        if gui.GMAIL_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Gmail username!', parent = gui.gui)
         else:
-            gui.GMAIL_USERNAME_entry.insert(0, TEMP_GMAIL_USERNAME)
+            gui.GMAIL_USERNAME_entry.insert(0, gui.GMAIL_USERNAME)
 
-        TEMP_REDDIT_USERNAME = check_reddit_username(TEMP_REDDIT_USERNAME)
+        gui.REDDIT_USERNAME = check_reddit_username(gui.REDDIT_USERNAME)
         gui.REDDIT_USERNAME_entry.delete(0, 'end')
-        if TEMP_REDDIT_USERNAME == None:
+        if gui.REDDIT_USERNAME == None:
             tkMessageBox.showerror(title = 'Error!', message = 'Bad Reddit username!', parent = gui.gui)
         else:
-            gui.REDDIT_USERNAME_entry.insert(0, TEMP_REDDIT_USERNAME)
+            gui.REDDIT_USERNAME_entry.insert(0, gui.REDDIT_USERNAME)
 
         cfgfile = open('config.cfg','w')
         Config = ConfigParser.ConfigParser()
         Config.add_section('Main')
-        Config.set('Main', 'sleep_time', TEMP_sleep_time)
-        Config.set('Main', 'search_term', TEMP_search_term)
-        Config.set('Main', 'subreddit_string', TEMP_subreddit_string)
-        Config.set('Main', 'TARGET_EMAIL', TEMP_TARGET_EMAIL)
-        Config.set('Main', 'GMAIL_USERNAME', TEMP_GMAIL_USERNAME)
-        Config.set('Main', 'REDDIT_USERNAME', TEMP_REDDIT_USERNAME)
+        Config.set('Main', 'sleep_time', gui.sleep_term)
+        Config.set('Main', 'search_term', gui.search_term)
+        Config.set('Main', 'subreddit_string', gui.subreddit_string)
+        Config.set('Main', 'TARGET_EMAIL', gui.TARGET_EMAIL)
+        Config.set('Main', 'GMAIL_USERNAME', gui.GMAIL_USERNAME)
+        Config.set('Main', 'REDDIT_USERNAME', gui.REDDIT_USERNAME)
         Config.write(cfgfile)
         cfgfile.close()
         gui.TEXT_var.set('Saved settings to "config.cfg"\n\n\n')
@@ -253,11 +253,11 @@ class ParseInput(object):
                 # put new posts with search term into messages_to_notify_user_about
                 not_notified_posts = 0
                 for new_post in posts_this_round:
-                    for temp_search_term in self.search_terms:
-                        if new_post.title.lower().find(temp_search_term) != -1 and new_post not in self.messages_to_notify_user_about:
+                    for search_term_iter in self.search_terms:
+                        if new_post.title.lower().find(search_term_iter) != -1 and new_post not in self.messages_to_notify_user_about:
                             self.messages_to_notify_user_about.append(new_post)
                             not_notified_posts += 1
-                        elif new_post.is_self and new_post.selftext.lower().find(temp_search_term) != -1 and new_post not in self.messages_to_notify_user_about:
+                        elif new_post.is_self and new_post.selftext.lower().find(search_term_iter) != -1 and new_post not in self.messages_to_notify_user_about:
                             self.messages_to_notify_user_about.append(new_post)
                             not_notified_posts += 1
                 current_text = current_text.strip('\n')
