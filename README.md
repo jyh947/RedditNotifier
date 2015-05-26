@@ -11,7 +11,7 @@ To run the script, you must have the latest version of Python 2 because Tkinter,
 ##### pip
 If you have Python 2.7.9 installed, you should already have pip.  Using pip is the easiest way to install praw, which this program requires.  If for some reason your computer somehow does not have pip, install it from [here]( https://pypi.python.org/pypi/pip)
 ##### Praw
-In order to install praw, go to the location where your pip application is installed in cmd.  For a majority of people, it should be in `C:\Python27\Scripts`.  Just go to the scripts folder within the folder where Python is installed in a command window.  For non-coders who don’t know what you’re doing, open a cmd window by pressing the Start button for Windows and looking for cmd.  For Mac users, open a terminal window.  Switch to the folder where pip is installed by typing `cd <location>` (for most Windows users, <location should be C:\Python27\Scripts> or wherever your scripts folder is.  Then type in `pip install praw` and wait until that is complete.
+In order to install praw, go to the location where your pip application is installed in cmd.  For a majority of people, it should be in `C:\Python27\Scripts`.  Just go to the scripts folder within the folder where Python is installed in a command window.  For non-coders who don’t know what you’re doing, open a cmd window by pressing the Start button for Windows and looking for cmd.  For Mac users, open a terminal window.  Switch to the folder where pip is installed by typing `cd <location>` (for most Windows users, <location should be C:\Python27\Scripts> or wherever your scripts folder is.  Then type in `pip install praw` and wait until the download done.
 ##### My Script
 Download my script, `notify.py`, and place it in your favorite folder.  Now, open your terminal/cmd window and type in `<location of python>\python.exe <location of my script>\notify.py`.  I would type something like `C:\Python27\python.exe C:\Users\jyh947\Documents\Python\notify.py` in my terminal window and then the program should be running!  If you added a shortcut to Python to your path variable, good for you, do what you want to.
 #### Basic Usage
@@ -33,6 +33,4 @@ You have the ability to save data to a `config.cfg` file, which will reside in t
 ##### Start Automation
 After logging into Gmail and Reddit, you should be able to check the “Start Automation” checkbox.  If the sleep time, search term(s), or subreddit list entries are incorrect, you will be notified.  The automation will not start until all the fields are valid.  By starting the automation process, the robot will automatically scan all the subreddits that you listed for all the search term(s) you listed and notify you whenever it finds a new post with those search term(s) to both your own Reddit account inbox and the target email that you entered.
 ##### Output
-The output section will update with information about what the robot is doing.  More or less, it’s just there to tell you that the robot is still running.
-
-
+The output section will update with information about what the robot is doing.  It might make no sense to you. More or less, it’s just there to tell you that the robot is still running.
