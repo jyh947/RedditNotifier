@@ -55,7 +55,7 @@ class ParseInput(object):
             tkMessageBox.showerror(title = 'Error!', message = 'Please enter a Reddit password!', parent = gui.gui)
             return 0
 
-        self.reddit = praw.Reddit(user_agent = 'string checker by /u/PC4U v1.1')
+        self.reddit = praw.Reddit(user_agent = 'string checker by /u/PC4U v2.0')
 
         try:
             user = self.reddit.get_redditor(gui.REDDIT_USERNAME)
