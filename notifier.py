@@ -2,7 +2,6 @@ import praw
 import time
 import os.path
 import smtplib
-import getpass
 import threading
 import ConfigParser
 import tkMessageBox
@@ -34,7 +33,6 @@ class ParseInput(object):
             gui.GMAIL_LOGIN_var.set('Logged Into Gmail!')
             if gui.REDDIT_LOGIN_var.get() == 'Logged Into Reddit!':
                 gui.START_button['state'] = 'normal'
-
         except Exception as detail:
             tkMessageBox.showerror(title = 'Error!', message = 'Message from Gmail:\n' + str(detail), parent = gui.gui)
             print detail
@@ -70,6 +68,7 @@ class ParseInput(object):
         if user.link_karma < 0:
             tkMessageBox.showerror(title = 'Error!', message = 'You must have at least 1 link karma!', parent = gui.gui)
             return
+            
         # authentication
         try:
             self.reddit.login(gui.REDDIT_USERNAME, gui.REDDIT_PASSWORD)
