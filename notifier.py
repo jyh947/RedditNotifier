@@ -85,6 +85,11 @@ class ParseInput(object):
 
     def Save(self, gui, startup):
         if not os.path.exists('config.cfg') and startup:
+            self.search_terms = []
+            self.subreddits = []
+            self.all_posts = []
+            self.messages_to_notify_user_about = []
+            self.messages_already_sent = []
             return
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
@@ -199,11 +204,6 @@ class ParseInput(object):
         else:
             gui.TARGET_EMAIL_entry.insert(0, gui.TARGET_EMAIL)
 
-        self.search_terms = []
-        self.subreddits = []
-        self.all_posts = []
-        self.messages_to_notify_user_about = []
-        self.messages_already_sent = []
         new_subreddit_list = []
 
         self.search_terms, gui.search_term = clean_list_string(gui.search_term, False, gui)
@@ -436,7 +436,7 @@ class GUI(object):
         self.OUTPUT.grid(column = 1, row = 12, columnspan = 2, sticky = 'W')
 
         self.TEXT_var.set('\n\n\n')
-        self.TEXT = tk.Label(self.mainframe, textvariable = self.TEXT_var, justify = 'left')
+        self.TEXT = tk.Label(self.mainframe, textvariable = self.TEXT_var)
         self.TEXT.grid(column = 1, row = 13, columnspan = 2, sticky = 'W')
 
         get_config_data(self)
