@@ -436,7 +436,7 @@ class GUI(object):
         self.OUTPUT.grid(column = 1, row = 12, columnspan = 2, sticky = 'W')
 
         self.TEXT_var.set('\n\n\n')
-        self.TEXT = tk.Label(self.mainframe, textvariable = self.TEXT_var)
+        self.TEXT = tk.Label(self.mainframe, textvariable = self.TEXT_var, justify = 'left')
         self.TEXT.grid(column = 1, row = 13, columnspan = 2, sticky = 'W')
 
         get_config_data(self)
