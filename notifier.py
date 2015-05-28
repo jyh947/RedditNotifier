@@ -65,7 +65,7 @@ class ParseInput(object):
             gui.REDDIT_LOGIN_var.set('Not Logged In!')
             gui.START_button['state'] = 'disabled'
             return
-        if user.link_karma < 0:
+        if user.link_karma < 2:
             tkMessageBox.showerror(title = 'Error!', message = 'You must have at least 1 link karma!', parent = gui.gui)
             return
             
