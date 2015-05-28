@@ -84,12 +84,13 @@ class ParseInput(object):
             gui.START_button['state'] = 'disabled'
 
     def Save(self, gui, startup):
-        if not os.path.exists('config.cfg') and startup:
+        if startup:
             self.search_terms = []
             self.subreddits = []
             self.all_posts = []
             self.messages_to_notify_user_about = []
             self.messages_already_sent = []
+        if not os.path.exists('config.cfg') and startup:
             return
         gui.sleep_time = gui.sleep_time_entry.get()
         gui.search_term = gui.search_term_entry.get()
