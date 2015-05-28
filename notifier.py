@@ -237,6 +237,7 @@ class ParseInput(object):
                 # get 10 new posts and place into all_posts
                 for subreddit in self.subreddits:
                     posts_to_grab = 10
+                    max_posts = 320
                     prev_posts = 6000
                     new_posts = 6000
                     while prev_posts == new_posts:
@@ -247,6 +248,8 @@ class ParseInput(object):
                             if submission not in self.all_posts and submission not in posts_this_round and (current_time - submission.created_utc) < stale_post_time:
                                 posts_this_subreddit.append(submission)
                                 new_posts += 1
+                        if posts_to_grab >= max_posts:
+                            break
                         posts_to_grab *= 2
                     for post in posts_this_subreddit:
                         if post not in posts_this_round:
