@@ -229,31 +229,50 @@ class ParseInput(object):
 
         def looping(self, gui):
             stale_post_time = 600
+            broken = False
             while gui.START_button_var.get():
                 gui.TEXT_var.set('\n\n\n')
                 # get current time
                 current_time = time.time()
+                print current_time
                 posts_this_round = []
                 # get 10 new posts and place into all_posts
                 for subreddit in self.subreddits:
                     posts_to_grab = 10
-                    max_posts = 320
                     prev_posts = 6000
                     new_posts = 6000
                     while prev_posts == new_posts:
                         prev_posts = posts_to_grab
                         new_posts = 0
                         posts_this_subreddit = []
-                        for submission in subreddit.get_new(limit = posts_to_grab):
-                            if submission not in self.all_posts and submission not in posts_this_round and (current_time - submission.created_utc) < stale_post_time:
-                                posts_this_subreddit.append(submission)
-                                new_posts += 1
-                        if posts_to_grab >= max_posts:
+                        new_posts_this_round = []
+                        #ACCESSES REDDIT
+                        try:
+                            new_posts_this_round = subreddit.get_new(limit = posts_to_grab)
+                        except Exception as detail:
+                            print detail
+                            time.sleep(30)
+                            broken = True
+                            break
+                        try:
+                            for submission in new_posts_this_round:
+                                if submission not in self.all_posts and submission not in posts_this_round and (current_time - submission.created_utc) < stale_post_time:
+                                    posts_this_subreddit.append(submission)
+                                    new_posts += 1
+                        except Exception as detail:
+                            print detail
+                            time.sleep(30)
+                            broken = True
                             break
                         posts_to_grab *= 2
+                    if broken:
+                        break
                     for post in posts_this_subreddit:
                         if post not in posts_this_round:
                             posts_this_round.append(post)
+                if broken:
+                    broken = False
+                    continue
                 current_text = 'Found ' + str(len(posts_this_round)) + ' new posts that have been added to the array\n\n\n'
                 print 'Found', len(posts_this_round), 'new posts that have been added to the array'
                 gui.TEXT_var.set(current_text)
@@ -274,12 +293,28 @@ class ParseInput(object):
                 # put all posts that need to be sent to the user in messages_already_sent
                 for to_send in self.messages_to_notify_user_about:
                     if to_send not in self.messages_already_sent:
-                        message_to_send = 'New post with something from ' + gui.search_term + ' in it from /r/' + str(to_send.subreddit) + '\n\n' + to_send.permalink + '\n\n'
+                        message_to_send = to_send.title + '\n\n'
                         if to_send.is_self:
-                            message_to_send += 'Self text here:\n\n'
                             message_to_send += to_send.selftext
-                        self.reddit.send_message(gui.REDDIT_USERNAME, 'New message found!', message_to_send)
-                        self.server.sendmail(gui.GMAIL_USERNAME, gui.TARGET_EMAIL, message_to_send)
+                        else:
+                            message_to_send += to_send.url
+                        message_to_send += '\n\nposted by ' + str(to_send.author)
+                        message_to_send += '\n\nNew message found meeting keyword(s)\n\n'
+                        message_to_send += gui.search_term + ' from /r/' + str(to_send.subreddit)
+                        message_to_send += '\n\n' + str(to_send.permalink)
+                        #ACCESSES REDDIT
+                        try:
+                            self.reddit.send_message(gui.REDDIT_USERNAME, 'New message found!', message_to_send)
+                        except Exception as detail:
+                            print '1', detail
+                        try:
+                            self.server = smtplib.SMTP('smtp.gmail.com', 587)
+                            self.server.ehlo()
+                            self.server.starttls()
+                            self.server.login(gui.GMAIL_USERNAME, gui.GMAIL_PASSWORD)
+                            self.server.sendmail(gui.GMAIL_USERNAME, gui.TARGET_EMAIL, message_to_send)
+                        except Exception as detail:
+                            print '2', detail
                         self.messages_already_sent.append(to_send)
 
                 # push new posts into queue
